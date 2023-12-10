@@ -40,9 +40,9 @@ export default appTarget => {
     )(GUI);
 
     // TODO a hack for testing the backpack, allow backpack host to be set by url param
-//    const backpackHostMatches = window.location.href.match(/[?&]backpack_host=([^&]*)&?/);
-//    const backpackHost = backpackHostMatches ? backpackHostMatches[1] : null;
-    const backpackHost = 'con3';
+    //const backpackHostMatches = window.location.href.match(/[?&]backpack_host=([^&]*)&?/);
+    //const backpackHost = backpackHostMatches ? backpackHostMatches[1] : null;
+    const backpackHost = 'scr_bp';
 
     const scratchDesktopMatches = window.location.href.match(/[?&]isScratchDesktop=([^&]+)/);
     let simulateScratchDesktop;
@@ -57,6 +57,23 @@ export default appTarget => {
         }
     }
 
+
+    // Include the (URI encoded) URL to a project file within the URL like
+    // ?project_file=https://example.com/epic-project.sb3
+    const projectFileMatches = window.location.href.match(/[?&]project=([^&]*)&?/);
+    const projectFile = projectFileMatches ? decodeURIComponent(projectFileMatches[1]) : null;
+
+    const onVmInit = vm => {
+        if (projectFile) {
+            fetch(projectFile)
+                .then(response => response.arrayBuffer())
+                .then(arrayBuffer => {
+                    vm.loadProject(arrayBuffer);
+                });
+        }
+    };
+    
+    
     if (process.env.NODE_ENV === 'production' && typeof window === 'object') {
         // Warn before navigating away
         window.onbeforeunload = () => true;
@@ -81,6 +98,7 @@ export default appTarget => {
                 backpackHost={backpackHost}
                 canSave={false}
                 onClickLogo={onClickLogo}
+                onVmInit={onVmInit}
             />,
         appTarget);
 };
