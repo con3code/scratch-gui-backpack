@@ -58,22 +58,45 @@ export default appTarget => {
     }
 
 
-    // Include the (URI encoded) URL to a project file within the URL like
-    // ?project_file=https://example.com/epic-project.sb3
-    const projectFileMatches = window.location.href.match(/[?&]project=([^&]*)&?/);
-    const projectFile = projectFileMatches ? decodeURIComponent(projectFileMatches[1]) : null;
-
+    // ?project=https://example.com/project.sb3
     const onVmInit = vm => {
-        if (projectFile) {
-            fetch(projectFile)
-                .then(response => response.arrayBuffer())
-                .then(arrayBuffer => {
-                    vm.loadProject(arrayBuffer);
-                });
-        }
+
+        // Load a project from a URL. Example: ?project_url=/example.sb3
+        let projectLoaded = false;
+
+        // We need to wait the VM start and the default project to be loaded before
+        // trying to load the url project, otherwiste we can get a mix of both.
+        vm.runtime.on('PROJECT_LOADED', () => {
+            if (!projectLoaded) {
+                const projectFileMatches = window.location.href.match(/[?&]project=([^&]*)&?/);
+                const projectFile = projectFileMatches ? decodeURIComponent(projectFileMatches[1]) : null;
+                if (projectFile) {
+                    fetch(projectFile)
+                        .then(response => {
+                            if (response.ok) {
+                                return response.arrayBuffer();
+                            } else {
+                                console.error('Failed to fetch project: ' + response.statusText);
+                            }
+                        })
+                        .then(arrayBuffer => {
+                            if (arrayBuffer) {
+                                projectLoaded = true;
+                                vm.loadProject(arrayBuffer)
+                                    .catch(error => {
+                                        projectLoaded = false;
+                                        console.error('Failed to load project. ' + error);
+                                    }
+                                );
+                            }
+                        }
+                    );
+                }
+            }
+        });
     };
     
-    
+
     if (process.env.NODE_ENV === 'production' && typeof window === 'object') {
         // Warn before navigating away
         window.onbeforeunload = () => true;
