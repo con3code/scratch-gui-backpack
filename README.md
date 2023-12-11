@@ -15,7 +15,7 @@
 2. In scratch-gui folder, clone scratch-gui-backpack. You will have scratch-gui-backpack folder under scratch-gui.
 
     ```
-    % git clone https://github.com/con3office/scratch-gui-backpack.git
+    % git clone https://github.com/con3code/scratch-gui-backpack.git
     ```
 
 3. Run the install script.
