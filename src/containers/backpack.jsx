@@ -264,7 +264,7 @@ const getTokenAndUsername = state => {
 //        username: usernameMatches ? usernameMatches[1] : null
 
         token: 'sc2',
-        username: 'con3'
+        username: 'scr_bp'
     };
 };
 
